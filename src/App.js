@@ -1,175 +1,83 @@
-import React, { Component } from 'react';
-import './App.css';
-import Avatar from 'react-avatar-edit';
-import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import CloseIcon from '@material-ui/icons/Close'
-import { DialogContent, DialogActions } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
-
-const styles = theme => ({
-  root: {
-    margin: 0,
-    padding: theme.spacing(2),
-  },
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-});
-
-const DialogTitle = withStyles(styles)(props => {
-  const { children, classes, onClose } = props;
-  return (
-    <MuiDialogTitle disableTypography className={classes.root}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
-});
-
-class App extends Component{
   
-    constructor(props) {
-      super(props)
-      this.state = {
-        preview: null,
-        setOpen:false,
-        userCurrentImage:"",
-      }
-      this.onCrop = this.onCrop.bind(this)
-      this.onClose = this.onClose.bind(this)
-      this.onBeforeFileLoad = this.onBeforeFileLoad.bind(this)
-    }
+import React from 'react'
+import _ from 'lodash'
+import { FacebookCounter, FacebookSelector } from 'react-reactions'
 
-    componentDidMount(){
-      this.getData()
-    }
-    getData(){
-      fetch("http://localhost:5002/users?id=1",{
-        method:"GET",
-        headers:{
-          "Accept": "application/json",
-          "Content-Type":"application/json"
-        }
-      })
-      .then(res => res.json())
-      .then((responseJson) => {
-        responseJson.map((item, key) => {
-          this.setState({
-            userCurrentImage: item.photoURL
-          })
+export class Facebook extends React.Component {
+  state = {
+    reactions:[
+      "like",
+      "wow",
+      'love',
+      "haha"
+    ],
+    counters: [],
+    user: 'Jordan Rosas',
+    showSelector: true,
+  }
+  componentDidMount(){
+    fetch("http://localhost:5002/users",{
+      method:"GET",
+      headers:{
+        "Accept":'application/json',
+        "Content-Type":"application/json"
+      }
+    })
+    .then(res => res.json())
+    .then(responseJson => {
+      console.log(responseJson)
+      let totalCounters = []
+      responseJson.map((item) => {
+        let counter = {
+          emoji: item.reaction,
+          by: item.first_name + " " + item.last_name
+        };
+        totalCounters.push(counter);
+        this.setState({
+          counters: totalCounters
         })
       })
-    }
+    })
+  }
 
-    putNewImage(){
-      fetch("http://localhost:5002/users/1",{
-        method:"PUT",
-        headers:{
-          "Accept": "application/json",
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          photoURL: this.state.preview
-        })
-      })
-      .then(res => res.json())
-      .then(this.getData())
-    }
-
-
-    handleClickOpen = () => {
+  handleSelect = (emoji) => {
+    const index = _.findIndex(this.state.counters, { by: this.state.user })
+    if (index > -1) {
       this.setState({
-        setOpen: true
+        counters: [
+          ...this.state.counters.slice(0, index),
+          { emoji, by: this.state.user },
+          ...this.state.counters.slice(index + 1),
+        ],
+        showSelector: false,
       })
-    };
-    handleClose = () => {
+    } else {
       this.setState({
-        setOpen: false
+        counters: [...this.state.counters, { emoji, by: this.state.user }],
+        showSelector: false,
       })
-      this.putNewImage()
-    };
-
-    onClose() {
-      this.setState({setOpen: false})
-    }
-    
-    onCrop(preview) {
-      this.setState({preview})
-    }
-    
-    onBeforeFileLoad(elem) {
-      if(elem.target.files[0].size > 71680){
-        alert("File is too big!");
-        elem.target.value = "";
-      };
-    }
-    renderUserImage(){
-      if(this.state.userCurrentImage !== null){
-        return(
-          <img src={this.state.userCurrentImage} alt="Preview" />
-        )
-      }else{
-        return(
-          <p>
-            Please upload a profile picture
-
-          </p>
-        )
-      }
-    }
-    render () {
-      return (
-        <>
-        <div className="wrapper">
-          <div>
-            {this.renderUserImage()}
-          </div>
-        <Dialog onClose={() => this.handleClose()} aria-labelledby="customized-dialog-title" open={this.state.setOpen}>
-          <DialogTitle id="customized-dialog-title" onClose={this.handleClose}>
-            Upload a profile image
-          </DialogTitle>
-          <DialogContent dividers>
-            <div style={{textAlign:'center'}}>
-            {this.state.preview === null ? (
-              <p style={{textAlign:'center'}}>Please select an image</p>
-            ):(
-              <img src={this.state.preview} alt="Preview" />
-            )}
-            <Avatar
-              width={390}
-              height={295}
-              onCrop={this.onCrop}
-              onClose={this.onClose}
-              onBeforeFileLoad={this.onBeforeFileLoad}
-              src={this.state.src}
-            />
-
-          </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Save changes
-            </Button>
-          </DialogActions>
-        </Dialog>
-        <Button style={{height:60, width:10, borderRadius:'150%'}} variant="outlined" color="primary" onClick={() => this.handleClickOpen()} >
-          <EditIcon  />
-        </Button>
-        </div>
-      </>
-      )
     }
   }
-export default App;
+
+  render() {
+    console.log(this.state)
+    return (
+      <div style={{ margin:'auto', width:'50%', marginTop:200 }}>
+        <div style={{width:200}}>
+          <FacebookSelector reactions={this.state.reactions} onSelect={ this.handleSelect } />
+        </div>
+
+        <FacebookCounter
+            counters={ this.state.counters }
+            user={ this.state.user }
+            bg="#fafafa"
+            important={ ['Henry Boldizsar', 'Rob Sandberg'] }
+          />
+
+
+      </div>
+    )
+  }
+}
+
+export default Facebook

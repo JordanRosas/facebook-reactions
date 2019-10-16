@@ -5,10 +5,11 @@
   "dependencies": {
     "@material-ui/core": "^4.5.0",
     "@material-ui/icons": "^4.4.3",
+    "lodash": "^4.17.15",
     "react": "^16.10.2",
     "react-avatar-edit": "^0.8.3",
-    "react-avatar-editor": "^11.0.7",
     "react-dom": "^16.10.2",
+    "react-reactions": "github:randomdipesh/react-reactions",
     "react-scripts": "3.2.0"
   },
   "scripts": {

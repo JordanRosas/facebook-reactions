@@ -71,7 +71,7 @@ export class Facebook extends React.Component {
             counters={ this.state.counters }
             user={ this.state.user }
             bg="#fafafa"
-            important={ ['Henry Boldizsar', 'Rob Sandberg'] }
+            important={ ['Jordan Rosas', 'Winner winner'] }
           />
 
 
